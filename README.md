@@ -1,0 +1,2 @@
+# compareAyat
+compare two ayats
