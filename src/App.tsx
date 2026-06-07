@@ -131,34 +131,7 @@ export default function App() {
         } else {
           // Text Search
           const results = quranService.searchAyahs(globalSearch);
-          setSearchMatches([]);
-
-          if (results.length > 0) {
-            const top9 = results.slice(0, 9);
-            
-            let shortestIdx = 0;
-            let minLen = Infinity;
-            top9.forEach((res, idx) => {
-              const len = res.text.replace(/\s+/g, '').length;
-              if (len < minLen) {
-                minLen = len;
-                shortestIdx = idx;
-              }
-            });
-
-            const shortest = top9[shortestIdx];
-            const rest = top9.filter((_, idx) => idx !== shortestIdx);
-            const newFeedsData = [shortest, ...rest];
-
-            const newFeeds = newFeedsData.map((res, idx) => ({
-              id: `search_${res.surah}_${res.ayah}_${Date.now()}_${idx}`,
-              surah: res.surah,
-              ayah: res.ayah,
-              text: res.text,
-              loading: false
-            }));
-            setFeeds(newFeeds);
-          }
+          setSearchMatches(results);
         }
       }
     }, 500);
