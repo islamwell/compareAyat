@@ -1,6 +1,5 @@
 import React from 'react';
 import type { ComparisonHistory } from '../types';
-import { SURAH_INFO } from '../quranData';
 
 interface HistoryProps {
   history: ComparisonHistory[];
@@ -9,52 +8,52 @@ interface HistoryProps {
 }
 
 const History: React.FC<HistoryProps> = ({ history, onSelectHistory, onClearHistory }) => {
-  const formatDate = (timestamp: number) => {
-    const date = new Date(timestamp);
-    return date.toLocaleString();
-  };
-
-  const getSurahName = (surahNumber: number) => {
-    const surah = SURAH_INFO.find(s => s.number === surahNumber);
-    return surah ? surah.englishName : `Surah ${surahNumber}`;
-  };
-
-  const formatAyahRef = (surah: number, ayah: number) => {
-    return `${getSurahName(surah)}:${ayah}`;
+  const formatTimestamp = (ts: number) => {
+    return new Date(ts).toLocaleTimeString();
   };
 
   return (
-    <div className="history-panel">
-      <div className="history-header">
-        <h3>Comparison History</h3>
+    <div className="flex flex-col gap-4">
+      <div className="flex justify-between items-center border-b border-gray-200 dark:border-gray-800 pb-2">
+        <h3 className="text-gray-600 dark:text-gray-300 font-bold uppercase tracking-widest text-sm">Comparison Logs</h3>
         {history.length > 0 && (
-          <button onClick={onClearHistory} className="clear-button">
-            Clear History
+          <button 
+            onClick={onClearHistory}
+            className="text-xs text-red-500 hover:text-red-400 uppercase tracking-widest font-bold transition-colors"
+          >
+            Purge Logs
           </button>
         )}
       </div>
-      
+
       {history.length === 0 ? (
-        <p className="empty-message">No comparison history yet</p>
+        <div className="text-gray-600 dark:text-gray-400 text-sm font-mono text-center py-4">
+          No logs found
+        </div>
       ) : (
-        <div className="history-list">
-          {history.map(item => (
-            <div
+        <div className="flex flex-col gap-2 max-h-[300px] overflow-y-auto pr-2 custom-scrollbar">
+          {history.map((item) => (
+            <button
               key={item.id}
-              className="history-item"
               onClick={() => onSelectHistory(item)}
+              className="flex items-center justify-between p-3 rounded-lg bg-gray-50 hover:bg-gray-100 dark:bg-gray-900/60 dark:hover:bg-gray-800 border border-gray-200 dark:border-gray-800 transition-all text-left group"
             >
-              <div className="history-comparison">
-                <span className="history-ayah">
-                  {formatAyahRef(item.ayat1.surah, item.ayat1.ayah)}
-                </span>
-                <span className="history-vs">vs</span>
-                <span className="history-ayah">
-                  {formatAyahRef(item.ayat2.surah, item.ayat2.ayah)}
+              <div className="flex flex-col gap-1">
+                <span className="text-xs text-gray-600 dark:text-gray-300 font-mono tracking-wider">
+                  {formatTimestamp(item.timestamp)}
                 </span>
               </div>
-              <div className="history-date">{formatDate(item.timestamp)}</div>
-            </div>
+              
+              <div className="flex justify-between items-center">
+                <div className="bg-cyan-50 dark:bg-cyan-950 border border-cyan-200 dark:border-cyan-800 text-cyan-600 dark:text-cyan-400 px-2 py-1 rounded text-sm font-mono font-bold group-hover:shadow-sm dark:group-hover:shadow-[0_0_8px_rgba(6,182,212,0.3)] transition-all">
+                  {item.ayat1.surah}:{item.ayat1.ayah}
+                </div>
+                <div className="text-gray-600 dark:text-gray-400 text-xs uppercase tracking-widest mx-2">VS</div>
+                <div className="bg-purple-50 dark:bg-purple-950 border border-purple-200 dark:border-purple-800 text-purple-600 dark:text-purple-400 px-2 py-1 rounded text-sm font-mono font-bold group-hover:shadow-sm dark:group-hover:shadow-[0_0_8px_rgba(168,85,247,0.3)] transition-all">
+                  {item.ayat2.surah}:{item.ayat2.ayah}
+                </div>
+              </div>
+            </button>
           ))}
         </div>
       )}

@@ -1,0 +1,172 @@
+<USER_REQUEST>
+import { diffArrays } from 'diff';
+
+export interface TextDiff {
+  text: string;
+  isDifferent: boolean;
+}
+
+export interface AlignedDiff {
+  text1: string;
+  text2: string;
+  isDifferent: boolean;
+}
+
+function splitGraphemes(text: string): string[] {
+  const Seg = (Intl as any).Segmenter;
+  if (Seg) {
+    const segmenter = new Seg('ar', { granularity: 'grapheme' });
+    return Array.from(segmenter.segment(text), (s: any) => s.segment);
+  }
+  return Array.from(text);
+}
+
+function splitWords(text: string): string[] {
+  // keeps spaces as tokens so output formatting survives
+  return text.match(/\s+|[^\s]+/gu) ?? [];
+}
+
+function unitKey(
+  unit: string,
+  vowelInsensitive: boolean,
+  ignoreWhiteSpace: boolean
+): string {
+  // Treat whitespace as the same "kind" when whitespace is ignored
+  if (ignoreWhiteSpace && /^\s+$/u.test(unit)) {
+    return '__WS__';
+  }
+
+  let key = unit.normalize('NFC');
+
+  if (vowelInsensitive) {
+    key = normalizeArabicText(key); // your existing function
+  }
+
+  if (ignoreWhiteSpace) {
+    key = key.replace(/\s+/g, '');
+  }
+
+  return key;
+}
+
+type Unit = { raw: string; key: string };
+
+function buildUnits(
+  text: string,
+  mode: 'letter' | 'word',
+  vowelInsensitive: boolean,
+  ignoreWhiteSpace: boolean
+): Unit[] {
+  const rawUnits = mode === 'word' ? splitWords(text) : splitGraphemes(text);
+
+  return rawUnits.map((raw) => ({
+    raw,
+    key: unitKey(raw, vowelInsensitive, ignoreWhiteSpace),
+  }));
+}
+
+function mergeChunks(chunks: AlignedDiff[]): AlignedDiff[] {
+  const out: AlignedDiff[] = [];
+
+  for (const chunk of chunks) {
+    const prev = out[out.length - 1];
+    if (
+      prev &&
+      prev.isDifferent === chunk.isDifferent &&
+      prev.text1 === '' &&
+      chunk.text1 === '' &&
+      prev.text2 === '' &&
+      chunk.text2 === ''
+    ) {
+      continue;
+    }
+
+    if (
+      prev &&
+      prev.isDifferent === chunk.isDifferent &&
+      prev.text1 !== '' &&
+      prev.text2 !== '' &&
+      chunk.text1 !== '' &&
+      chunk.text2 !== ''
+    ) {
+      prev.text1 += chunk.
+<truncated 260 bytes>
+word' = 'letter'
+): AlignedDiff[] {
+  const a = buildUnits(text1, mode, vowelInsensitive, ignoreWhiteSpace);
+  const b = buildUnits(text2, mode, vowelInsensitive, ignoreWhiteSpace);
+
+  const diff = diffArrays(
+    a.map((u) => u.key),
+    b.map((u) => u.key)
+  );
+
+  let ai = 0;
+  let bi = 0;
+  const chunks: AlignedDiff[] = [];
+
+  for (const part of diff) {
+    const len = part.value.length;
+
+    const aText = a.slice(ai, ai + len).map((u) => u.raw).join('');
+    const bText = b.slice(bi, bi + len).map((u) => u.raw).join('');
+
+    if (part.added) {
+      chunks.push({
+        text1: '',
+        text2: bText,
+        isDifferent: true,
+      });
+      bi += len;
+    } else if (part.removed) {
+      chunks.push({
+        text1: aText,
+        text2: '',
+        isDifferent: true,
+      });
+      ai += len;
+    } else {
+      chunks.push({
+        text1: aText,
+        text2: bText,
+        isDifferent: false,
+      });
+      ai += len;
+      bi += len;
+    }
+  }
+
+  return mergeChunks(chunks);
+}
+
+// Backward-compatible wrapper: returns only text1 spans.
+// Note: insertions from text2 cannot be represented in this type.
+export const compareTexts = (
+  text1: string,
+  text2: string,
+  vowelInsensitive: boolean,
+  ignoreWhiteSpace: boolean,
+  mode: 'letter' | 'word' = 'letter'
+): TextDiff[] => {
+  return compareTextsAligned(
+    text1,
+    text2,
+    vowelInsensitive,
+    ignoreWhiteSpace,
+    mode
+  )
+    .filter((chunk) => chunk.text1 !== '')
+    .map((chunk) => ({
+      text: chunk.text1,
+      isDifferent: chunk.isDifferent,
+    }));
+};
+
+try this code and check for correct comparison for 1:2 and 6:45
+</USER_REQUEST>
+<ADDITIONAL_METADATA>
+The current local time is: 2026-06-04T21:29:03+02:00.
+</ADDITIONAL_METADATA>
+<USER_SETTINGS_CHANGE>
+The user changed setting `Model Selection` from Gemini 3.5 Flash (High) to Gemini 3.1 Pro (High). No need to comment on this change if the user doesn't ask about it. If reporting what model you are, please use a human readable name instead of the exact string.
+</USER_SETTINGS_CHANGE>

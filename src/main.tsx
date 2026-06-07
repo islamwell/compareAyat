@@ -3,6 +3,16 @@ import { createRoot } from 'react-dom/client'
 import './index.css'
 import App from './App.tsx'
 
+// Invalidate cache and settings on version change to ensure database and vowel engine match
+const currentVersion = typeof __BUILD_VERSION__ !== 'undefined' ? __BUILD_VERSION__ : '0.0.0';
+const storedVersion = localStorage.getItem('app_build_version');
+if (storedVersion !== currentVersion) {
+  localStorage.removeItem('quran_data');
+  localStorage.removeItem('quran_download_status');
+  localStorage.removeItem('app_settings');
+  localStorage.setItem('app_build_version', currentVersion);
+}
+
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <App />
