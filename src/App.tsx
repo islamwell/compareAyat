@@ -18,10 +18,34 @@ export default function App() {
   const [settings, setSettingsState] = useState<Settings>(getSettings());
   
   // State for N-verses
-  const [feeds, setFeeds] = useState<AyahFeedData[]>([
-    { id: 'feed_1', surah: 1, ayah: 1 },
-    { id: 'feed_2', surah: 1, ayah: 2 }
-  ]);
+  const [feeds, setFeeds] = useState<AyahFeedData[]>(() => {
+    const params = new URLSearchParams(window.location.search);
+    const compareParam = params.get('compare');
+    if (compareParam) {
+      const parts = compareParam.split(',');
+      const parsedFeeds = parts.map((p, idx) => {
+        const [s, a] = p.split(':');
+        return {
+          id: `url_feed_${Date.now()}_${idx}`,
+          surah: parseInt(s) || 1,
+          ayah: parseInt(a) || 1
+        };
+      });
+      if (parsedFeeds.length > 0) return parsedFeeds;
+    }
+    return [
+      { id: 'feed_1', surah: 1, ayah: 1 },
+      { id: 'feed_2', surah: 1, ayah: 2 }
+    ];
+  });
+
+  useEffect(() => {
+    if (feeds.length > 0) {
+      const compareStr = feeds.map(f => `${f.surah}:${f.ayah}`).join(',');
+      const newUrl = `${window.location.pathname}?compare=${compareStr}`;
+      window.history.replaceState({}, '', newUrl);
+    }
+  }, [feeds]);
 
   const [globalSearch, setGlobalSearch] = useState('');
   const [isDownloading, setIsDownloading] = useState<boolean>(false);
@@ -34,6 +58,7 @@ export default function App() {
   const [isSearchFocused, setIsSearchFocused] = useState(false);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   const isOfflineReady = quranService.isDataLoaded();
+  const [showInitModal, setShowInitModal] = useState(!isOfflineReady);
 
   const [playingFeedId, setPlayingFeedId] = useState<string | null>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
@@ -341,6 +366,12 @@ export default function App() {
         e.preventDefault();
         document.getElementById('global-search-input')?.focus();
       }
+      // ? for shortcuts
+      if (e.key === '?') {
+        e.preventDefault();
+        setToastMessage('Shortcuts: Alt+N (Add), Ctrl+S (Save), Ctrl+Z (Undo), / (Search)');
+        setTimeout(() => setToastMessage(null), 5000);
+      }
     };
     
     window.addEventListener('keydown', handleKeyDown);
@@ -465,25 +496,6 @@ export default function App() {
               Ayat Compare
             </h1>
             <p className="text-gray-600 dark:text-gray-300 text-sm font-bold tracking-widest mt-2 uppercase">Advanced Quranic Analysis Matrix</p>
-            <div className="inline-flex items-center gap-3 mt-4 text-[11px] font-mono font-bold bg-white text-black px-3 py-1.5 rounded-md shadow-[0_2px_10px_rgba(0,0,0,0.3)] border border-gray-300 dark:border-gray-500 max-w-fit">
-              <span>v{typeof __BUILD_VERSION__ !== 'undefined' ? __BUILD_VERSION__ : '0.0.0'}</span>
-              <span className="text-gray-600">•</span>
-              <span>BUILD: {typeof __BUILD_TIME__ !== 'undefined' ? __BUILD_TIME__ : 'DEV'}</span>
-            </div>
-          </div>
-          <div className="text-right flex flex-col items-end">
-            <div className="flex items-center gap-4">
-              <button
-                onClick={() => alert('Keyboard Shortcuts:\n\nCtrl+Z : Undo close card\nCtrl+N : Add new feed\nCtrl+S : Log Data to History\n/ : Focus Global Search')}
-                className="text-xs font-mono text-cyan-600 dark:text-cyan-400 tracking-wider hover:underline"
-              >
-                [?] Shortcuts
-              </button>
-              <div className="flex items-center gap-2">
-                <span className={`w-2 h-2 rounded-full animate-pulse ${isOfflineReady ? 'bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.8)]' : 'bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.8)]'}`}></span>
-                <span className="text-xs font-mono text-gray-700 dark:text-gray-300 tracking-wider">SYS.STATUS</span>
-              </div>
-            </div>
           </div>
         </header>
 
@@ -684,6 +696,41 @@ export default function App() {
           <History history={history} onSelectHistory={handleSelectHistory} onClearHistory={handleClearHistory} />
         </div>
 
+        {/* System Footer */}
+        <footer className="mt-12 pt-6 border-t border-gray-200 dark:border-gray-800 flex flex-col md:flex-row items-center justify-between gap-4 text-xs font-mono text-gray-500 dark:text-gray-400">
+          <div className="flex items-center gap-3">
+            <span>v{typeof __BUILD_VERSION__ !== 'undefined' ? __BUILD_VERSION__ : '0.0.0'}</span>
+            <span>•</span>
+            <span>BUILD: {typeof __BUILD_TIME__ !== 'undefined' ? __BUILD_TIME__ : 'DEV'}</span>
+          </div>
+          
+          <div className="flex items-center gap-6">
+            <div className="flex items-center gap-2">
+              <span className={`w-2 h-2 rounded-full animate-pulse ${isOfflineReady ? 'bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.8)]' : 'bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.8)]'}`}></span>
+              <span>SYS.STATUS</span>
+            </div>
+            
+            <button
+              onClick={() => {
+                setToastMessage('Shortcuts: Alt+N (Add), Ctrl+S (Save), Ctrl+Z (Undo), / (Search)');
+                setTimeout(() => setToastMessage(null), 5000);
+              }}
+              className="text-cyan-600 dark:text-cyan-400 tracking-wider hover:underline uppercase font-bold"
+            >
+              [?] Shortcuts
+            </button>
+
+            <a 
+              href="/docs.html" 
+              target="_blank" 
+              rel="noreferrer"
+              className="text-purple-600 dark:text-purple-400 hover:underline tracking-widest uppercase font-bold"
+            >
+              Docs
+            </a>
+          </div>
+        </footer>
+
       </div>
       
       {isSearchModalOpen && (
@@ -699,6 +746,38 @@ export default function App() {
       {toastMessage && (
         <div className="fixed bottom-8 right-8 bg-gray-900 dark:bg-white text-white dark:text-gray-900 px-6 py-3 rounded-lg shadow-2xl font-bold tracking-widest uppercase text-sm z-[100] animate-bounce">
           {toastMessage}
+        </div>
+      )}
+
+      {/* Init Modal */}
+      {showInitModal && !isOfflineReady && (
+        <div className="fixed inset-0 z-[200] flex items-center justify-center bg-gray-900/80 backdrop-blur-sm p-4">
+          <div className="bg-white dark:bg-gray-900 border border-emerald-200 dark:border-emerald-800 rounded-2xl shadow-2xl max-w-md w-full p-8 text-center animate-in fade-in zoom-in duration-300">
+            <h2 className="text-2xl font-black uppercase tracking-widest text-emerald-600 dark:text-emerald-400 mb-4">
+              Welcome
+            </h2>
+            <p className="text-gray-600 dark:text-gray-300 mb-8 font-medium">
+              Please download ~ 1 MB file to increase speed and enable instant offline search and comparison.
+            </p>
+            <div className="flex flex-col gap-3">
+              <button
+                onClick={async () => {
+                  await handleDownload();
+                  setShowInitModal(false);
+                }}
+                disabled={isDownloading}
+                className="w-full px-6 py-3 bg-emerald-600 hover:bg-emerald-500 text-white font-bold uppercase tracking-widest text-sm rounded shadow-lg hover:shadow-emerald-500/50 transition-all disabled:opacity-50"
+              >
+                {isDownloading ? 'Downloading...' : 'Download Now'}
+              </button>
+              <button
+                onClick={() => setShowInitModal(false)}
+                className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 text-xs font-bold uppercase tracking-widest mt-2 transition-colors"
+              >
+                Skip for now
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </div>
