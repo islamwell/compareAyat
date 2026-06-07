@@ -44,14 +44,15 @@ const History: React.FC<HistoryProps> = ({ history, onSelectHistory, onClearHist
                 </span>
               </div>
               
-              <div className="flex justify-between items-center">
-                <div className="bg-cyan-50 dark:bg-cyan-950 border border-cyan-200 dark:border-cyan-800 text-cyan-600 dark:text-cyan-400 px-2 py-1 rounded text-sm font-mono font-bold group-hover:shadow-sm dark:group-hover:shadow-[0_0_8px_rgba(6,182,212,0.3)] transition-all">
-                  {item.ayat1.surah}:{item.ayat1.ayah}
-                </div>
-                <div className="text-gray-600 dark:text-gray-400 text-xs uppercase tracking-widest mx-2">VS</div>
-                <div className="bg-purple-50 dark:bg-purple-950 border border-purple-200 dark:border-purple-800 text-purple-600 dark:text-purple-400 px-2 py-1 rounded text-sm font-mono font-bold group-hover:shadow-sm dark:group-hover:shadow-[0_0_8px_rgba(168,85,247,0.3)] transition-all">
-                  {item.ayat2.surah}:{item.ayat2.ayah}
-                </div>
+              <div className="flex items-center flex-wrap gap-2 mt-2">
+                {(item.ayats || [item.ayat1, item.ayat2].filter(Boolean)).map((ayat, idx) => (
+                  <React.Fragment key={idx}>
+                    {idx > 0 && <div className="text-gray-600 dark:text-gray-400 text-xs uppercase tracking-widest font-bold">VS</div>}
+                    <div className={`border px-2 py-1 rounded text-sm font-mono font-bold group-hover:shadow-sm transition-all ${idx === 0 ? 'bg-cyan-50 dark:bg-cyan-950 border-cyan-200 dark:border-cyan-800 text-cyan-600 dark:text-cyan-400 dark:group-hover:shadow-[0_0_8px_rgba(6,182,212,0.3)]' : 'bg-purple-50 dark:bg-purple-950 border-purple-200 dark:border-purple-800 text-purple-600 dark:text-purple-400 dark:group-hover:shadow-[0_0_8px_rgba(168,85,247,0.3)]'}`}>
+                      {ayat!.surah}:{ayat!.ayah}
+                    </div>
+                  </React.Fragment>
+                ))}
               </div>
             </button>
           ))}

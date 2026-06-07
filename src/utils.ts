@@ -13,14 +13,13 @@ export const getHistory = (): ComparisonHistory[] => {
   }
 };
 
-export const addToHistory = (ayat1: { surah: number; ayah: number }, ayat2: { surah: number; ayah: number }) => {
+export const addToHistory = (ayats: { surah: number; ayah: number }[]) => {
   try {
     const history = getHistory();
     const newEntry: ComparisonHistory = {
       id: Date.now().toString(),
       timestamp: Date.now(),
-      ayat1,
-      ayat2,
+      ayats
     };
     
     history.unshift(newEntry);
@@ -106,6 +105,16 @@ export const addSearchHistory = (term: string) => {
   const limited = filtered.slice(0, 10);
   try {
     localStorage.setItem(SEARCH_HISTORY_KEY, JSON.stringify(limited));
+  } catch (e) {
+    console.error("Failed to save search history", e);
+  }
+};
+
+export const removeSearchHistory = (term: string) => {
+  const history = getSearchHistory();
+  const filtered = history.filter(h => h !== term);
+  try {
+    localStorage.setItem(SEARCH_HISTORY_KEY, JSON.stringify(filtered));
   } catch (e) {
     console.error("Failed to save search history", e);
   }

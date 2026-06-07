@@ -14,8 +14,9 @@ export interface Surah {
 export interface ComparisonHistory {
   id: string;
   timestamp: number;
-  ayat1: { surah: number; ayah: number };
-  ayat2: { surah: number; ayah: number };
+  ayats?: { surah: number; ayah: number }[];
+  ayat1?: { surah: number; ayah: number };
+  ayat2?: { surah: number; ayah: number };
 }
 
 export interface Settings {

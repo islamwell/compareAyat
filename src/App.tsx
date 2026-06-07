@@ -7,7 +7,7 @@ import SearchModal from './components/SearchModal';
 import type { SearchMatch } from './components/SearchModal';
 import type { AyahFeedData } from './components/FeedCard';
 import { QuranService } from './quranService';
-import { addToHistory, getHistory, clearHistory, getSettings, saveSettings, getSearchHistory, addSearchHistory, clearSearchHistory } from './utils';
+import { addToHistory, getHistory, clearHistory, getSettings, saveSettings, getSearchHistory, addSearchHistory, clearSearchHistory, removeSearchHistory, compareTexts } from './utils';
 import type { ComparisonHistory } from './types';
 import type { Settings } from './utils';
 import html2canvas from 'html2canvas';
@@ -106,7 +106,7 @@ export default function App() {
         } else {
           // Text Search
           const results = quranService.searchAyahs(globalSearch);
-          setSearchMatches(results);
+          setSearchMatches([]);
 
           if (results.length > 0) {
             const top9 = results.slice(0, 9);
@@ -199,10 +199,7 @@ export default function App() {
 
   const handleSave = useCallback(() => {
     if (feeds.length >= 2) {
-      addToHistory(
-        { surah: feeds[0].surah, ayah: feeds[0].ayah }, 
-        { surah: feeds[1].surah, ayah: feeds[1].ayah }
-      );
+      addToHistory(feeds.map(f => ({ surah: f.surah, ayah: f.ayah })));
       setHistory(getHistory());
       setToastMessage('Data Logged Successfully!');
       setTimeout(() => setToastMessage(null), 3000);
@@ -219,23 +216,78 @@ export default function App() {
         <meta charset="utf-8">
         <title>Compare Ayat Export</title>
         <style>
-          body { font-family: sans-serif; padding: 20px; background: #fff; color: #000; }
-          .card { border: 1px solid #ccc; padding: 15px; margin-bottom: 20px; border-radius: 8px; }
-          .text { font-family: "Amiri Quran", serif; font-size: 28px; direction: rtl; text-align: right; line-height: 2.5; }
-          .meta { color: #666; font-size: 14px; margin-bottom: 10px; font-weight: bold; text-transform: uppercase; letter-spacing: 1px; }
+          body { font-family: sans-serif; padding: 20px; background: #f9fafb; color: #111827; }
+          .card { border: 1px solid #e5e7eb; padding: 24px; margin-bottom: 24px; border-radius: 12px; background: #fff; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); }
+          .text { font-family: "Amiri Quran", serif; font-size: 32px; direction: rtl; text-align: right; line-height: 2.5; margin-top: 15px; }
+          .meta { color: #4b5563; font-size: 14px; margin-bottom: 15px; font-weight: bold; text-transform: uppercase; letter-spacing: 1px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #f3f4f6; padding-bottom: 10px; }
+          .stats { display: flex; gap: 15px; font-family: monospace; font-size: 12px; font-weight: bold; }
+          .stat-match { color: ${settings.matchColor}; }
+          .stat-diff { color: ${settings.diffColor}; }
+          .stat-neutral { color: #6b7280; }
         </style>
       </head>
       <body>
-        <h1>Ayat Comparison Export</h1>
-        <p>Exported on: ${new Date().toLocaleString()}</p>
-        <hr style="margin-bottom: 30px; border: none; border-top: 1px solid #ccc;" />
+        <h1 style="text-transform: uppercase; letter-spacing: 2px;">Ayat Comparison Export</h1>
+        <p style="color: #6b7280; font-family: monospace; font-size: 14px; margin-bottom: 30px;">Exported on: ${new Date().toLocaleString()}</p>
     `;
 
+    const referenceFeed = feeds[0];
+
     feeds.forEach((feed, idx) => {
+      const isReference = idx === 0;
+      
+      const cleanTextForCounts = feed.text ? feed.text.replace(/[\u064B-\u065F\u0670\u06D6-\u06ED]/g, '') : '';
+      const totalWords = cleanTextForCounts.split(/\s+/).filter(w => w.length > 0).length;
+      const totalLetters = cleanTextForCounts.replace(/\s+/g, '').length;
+
+      let statsHtml = `<div class="stats"><span class="stat-neutral">${totalWords} W</span> <span class="stat-neutral">•</span> <span class="stat-neutral">${totalLetters} L</span>`;
+
+      let highlightedHtml = feed.text || '';
+
+      if (!isReference && feed.text && referenceFeed.text) {
+        const highlighted = compareTexts(feed.text, referenceFeed.text, {
+          vowelInsensitive: settings.vowelInsensitive,
+          ignoreWhiteSpace: settings.ignoreWhiteSpace,
+          mode: settings.comparisonMode,
+        });
+        
+        let matchChars = 0;
+        let diffCharsCount = 0;
+        highlightedHtml = highlighted.map(item => {
+          const cText = item.text.replace(/\s+/g, '');
+          if (item.isDifferent) {
+            diffCharsCount += cText.length;
+            return `<span style="color: ${settings.diffColor}; font-weight: bold; background-color: ${settings.diffColor}1A;">${item.text}</span>`;
+          } else {
+            matchChars += cText.length;
+            if (!settings.hideMatchColor) {
+              return `<span style="color: ${settings.matchColor}; font-weight: bold; background-color: ${settings.matchColor}1A;">${item.text}</span>`;
+            }
+            return `<span>${item.text}</span>`;
+          }
+        }).join('');
+
+        const totalChars = matchChars + diffCharsCount;
+        const matchPercentage = totalChars > 0 ? Math.round((matchChars / totalChars) * 100) : 0;
+        
+        statsHtml += `
+          <span class="stat-neutral">|</span>
+          <span class="stat-match">${matchPercentage}% MATCH</span>
+          <span class="stat-neutral">•</span>
+          <span class="stat-match">${matchChars} MATCH</span>
+          <span class="stat-neutral">•</span>
+          <span class="stat-diff">${diffCharsCount} DIFF</span>
+        `;
+      }
+      statsHtml += `</div>`;
+
       htmlContent += `
         <div class="card">
-          <div class="meta">${idx === 0 ? 'Master Reference' : 'Comparison'} &mdash; Surah ${feed.surah}, Ayah ${feed.ayah}</div>
-          <div class="text">${feed.text || ''}</div>
+          <div class="meta">
+            <span>${isReference ? 'Master Reference' : 'Comparison'} &mdash; Surah ${feed.surah}, Ayah ${feed.ayah}</span>
+            ${statsHtml}
+          </div>
+          <div class="text">${highlightedHtml}</div>
         </div>
       `;
     });
@@ -257,7 +309,7 @@ export default function App() {
     
     setToastMessage('Exported HTML Successfully!');
     setTimeout(() => setToastMessage(null), 3000);
-  }, [feeds]);
+  }, [feeds, settings]);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -329,10 +381,15 @@ export default function App() {
   };
 
   const handleSelectHistory = (item: ComparisonHistory) => {
-    setFeeds([
-      { id: `feed_${Date.now()}_1`, surah: item.ayat1.surah, ayah: item.ayat1.ayah },
-      { id: `feed_${Date.now()}_2`, surah: item.ayat2.surah, ayah: item.ayat2.ayah }
-    ]);
+    const ayatsToLoad = item.ayats || [item.ayat1!, item.ayat2!].filter(Boolean);
+    const newFeeds = ayatsToLoad.map((ayat, idx) => ({
+      id: `history_${Date.now()}_${idx}`,
+      surah: ayat.surah,
+      ayah: ayat.ayah,
+      text: undefined,
+      loading: false
+    }));
+    setFeeds(newFeeds);
     setGlobalSearch('');
   };
 
@@ -470,20 +527,34 @@ export default function App() {
                 </div>
                 <ul>
                   {searchHistory.map((term, idx) => (
-                    <li key={idx}>
+                    <li key={idx} className="relative group">
                       <button
                         onMouseDown={(e) => {
                           e.preventDefault();
                           setGlobalSearch(term);
                           setIsSearchFocused(false);
                         }}
-                        className="w-full text-left px-4 py-3 hover:bg-cyan-50 dark:hover:bg-cyan-900/30 text-gray-700 dark:text-gray-300 transition-colors border-b border-gray-100 dark:border-gray-800 last:border-0 flex items-center justify-between"
+                        className="w-full text-left pl-4 pr-12 py-3 hover:bg-cyan-50 dark:hover:bg-cyan-900/30 text-gray-700 dark:text-gray-300 transition-colors border-b border-gray-100 dark:border-gray-800 last:border-0 flex items-center justify-between"
                       >
                         <span dir={/[a-zA-Z]/.test(term) ? "ltr" : "rtl"} className="text-lg" style={{ fontFamily: /[a-zA-Z]/.test(term) ? 'inherit' : '"Amiri Quran", serif' }}>
                           {term}
                         </span>
-                        <svg className="w-4 h-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <svg className="w-4 h-4 text-gray-400 opacity-40" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                        </svg>
+                      </button>
+                      <button
+                        onMouseDown={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          removeSearchHistory(term);
+                          setSearchHistory(getSearchHistory());
+                        }}
+                        className="absolute right-2 top-1/2 -translate-y-1/2 p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/30 rounded-full transition-all sm:opacity-0 sm:group-hover:opacity-100"
+                        title="Remove from history"
+                      >
+                        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M6 18L18 6M6 6l12 12" />
                         </svg>
                       </button>
                     </li>
@@ -499,7 +570,7 @@ export default function App() {
               onClick={syncFeeds} 
               className="px-6 py-2 bg-white dark:bg-gray-900 border border-cyan-400 dark:border-cyan-500 text-cyan-600 dark:text-cyan-400 font-bold uppercase tracking-widest text-sm rounded shadow-sm hover:shadow-md dark:shadow-[0_0_10px_rgba(0,255,255,0.2)] hover:bg-cyan-50 dark:hover:bg-cyan-950 dark:hover:shadow-[0_0_15px_rgba(0,255,255,0.4)] transition-all"
             >
-              Sync Feeds
+              Sync
             </button>
             <button 
               onClick={addEmptyFeed} 
@@ -513,7 +584,7 @@ export default function App() {
                 className="px-6 py-2 bg-white dark:bg-gray-900 border border-yellow-400 dark:border-yellow-500 text-yellow-600 dark:text-yellow-400 font-bold uppercase tracking-widest text-sm rounded shadow-sm hover:shadow-md dark:shadow-[0_0_10px_rgba(234,179,8,0.2)] hover:bg-yellow-50 dark:hover:bg-yellow-950 transition-all"
                 title="Undo Close (Ctrl+Z)"
               >
-                Undo Close
+                Undo
               </button>
             )}
             <button 
@@ -622,6 +693,13 @@ export default function App() {
           onCompare={handleCompareMatches}
           theme={settings.theme}
         />
+      )}
+
+      {/* Toast Notification */}
+      {toastMessage && (
+        <div className="fixed bottom-8 right-8 bg-gray-900 dark:bg-white text-white dark:text-gray-900 px-6 py-3 rounded-lg shadow-2xl font-bold tracking-widest uppercase text-sm z-[100] animate-bounce">
+          {toastMessage}
+        </div>
       )}
     </div>
   );

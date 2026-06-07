@@ -1,4 +1,4 @@
-import React, { useRef, useState } from 'react';
+import React, { useRef, useState, useEffect } from 'react';
 import type { DraggableProvidedDragHandleProps } from '@hello-pangea/dnd';
 import AyahSelector from './AyahSelector';
 import { compareTexts } from '../utils';
@@ -47,7 +47,11 @@ export default function FeedCard({
   onToggleAudio
 }: FeedCardProps) {
 
-  const [isCollapsed, setIsCollapsed] = useState(false);
+  const [isCollapsed, setIsCollapsed] = useState(settings.layout === 'horizontal');
+  
+  useEffect(() => {
+    setIsCollapsed(settings.layout === 'horizontal');
+  }, [settings.layout]);
   const touchStart = useRef<number | null>(null);
 
   const handleTouchStart = (e: React.TouchEvent) => { touchStart.current = e.touches[0].clientX; };
