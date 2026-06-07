@@ -470,6 +470,13 @@ export default function App() {
             </h1>
             <p className="text-gray-600 dark:text-gray-300 text-sm font-bold tracking-widest mt-2 uppercase">Advanced Quranic Analysis Matrix</p>
           </div>
+          <button 
+            onClick={() => handleSettingsChange({ ...settings, theme: settings.theme === 'light' ? 'dark' : 'light' })}
+            className="p-3 rounded-full bg-white dark:bg-gray-800 shadow-sm border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors flex items-center justify-center text-xl"
+            title="Toggle Theme"
+          >
+            {settings.theme === 'light' ? '🌙' : '☀️'}
+          </button>
         </header>
 
         {/* Top Controls & Settings */}

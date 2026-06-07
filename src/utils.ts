@@ -59,14 +59,14 @@ const DEFAULT_SETTINGS: Settings = {
   fontSize: 32,
   highlightDifferences: true,
   vowelInsensitive: true,
-  comparisonMode: 'letter',
+  comparisonMode: 'word',
   hideMatchColor: false,
   hideDiacritics: false,
   ignoreWhiteSpace: true,
   matchColor: '#06b6d4',
   diffColor: '#ec4899',
-  theme: 'dark',
-  layout: 'horizontal',
+  theme: 'light',
+  layout: 'vertical',
 };
 
 export const getSettings = (): Settings => {
