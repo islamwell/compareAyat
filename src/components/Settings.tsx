@@ -55,8 +55,8 @@ const SettingsComponent: React.FC<SettingsProps> = ({ settings, onChange }) => {
           <div className="flex flex-col gap-2">
             <label className="text-sm font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wide mb-1">Layout</label>
             <SkeuomorphicToggle 
-              leftLabel="Vert" 
-              rightLabel="Horiz" 
+              leftLabel="Horiz" 
+              rightLabel="Vert" 
               isRight={settings.layout === 'horizontal'}
               onToggle={() => updateSetting('layout', settings.layout === 'vertical' ? 'horizontal' : 'vertical')}
             />
@@ -90,8 +90,8 @@ const SettingsComponent: React.FC<SettingsProps> = ({ settings, onChange }) => {
           <div className="flex flex-col gap-2 mt-2">
             <label className="text-sm font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wide mb-1">Comparison</label>
             <SkeuomorphicToggle 
-              leftLabel="Word" 
-              rightLabel="Letter" 
+              leftLabel="Letter" 
+              rightLabel="Word" 
               isRight={settings.comparisonMode === 'letter'}
               onToggle={() => updateSetting('comparisonMode', settings.comparisonMode === 'word' ? 'letter' : 'word')}
             />
