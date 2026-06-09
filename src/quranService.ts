@@ -296,11 +296,26 @@ export class QuranService {
     const results: { surah: number; ayah: number; text: string }[] = [];
     if (!query || query.trim() === '') return results;
     
-    // Use the normalized version
-    const normalizedQuery = normalizeArabicText(query);
+    // Parse the query into OR clauses, then AND terms.
+    // Using Disjunctive Normal Form evaluation.
+    const orChunks = query.split(/\s+OR\s+/i).filter(c => c.trim() !== '');
+    
+    const parsedQuery = orChunks.map(chunk => 
+      chunk.split(/\s+AND\s+/i)
+           .filter(term => term.trim() !== '')
+           .map(term => normalizeArabicText(term.trim()))
+    );
 
     for (const [key, text] of Object.entries(this.quranData)) {
-      if (normalizeArabicText(text).includes(normalizedQuery)) {
+      const normalizedText = normalizeArabicText(text);
+      
+      // Text matches if it satisfies AT LEAST ONE 'OR' chunk
+      const matches = parsedQuery.some(andTerms => {
+        // A chunk is satisfied if it matches ALL 'AND' terms inside it
+        return andTerms.length > 0 && andTerms.every(term => normalizedText.includes(term));
+      });
+
+      if (matches) {
         const [surahStr, ayahStr] = key.split(':');
         results.push({ surah: parseInt(surahStr, 10), ayah: parseInt(ayahStr, 10), text });
       }

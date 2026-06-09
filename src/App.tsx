@@ -4,6 +4,7 @@ import SettingsComponent from './components/Settings';
 import History from './components/History';
 import FeedCard from './components/FeedCard';
 import SearchModal from './components/SearchModal';
+import { ArabicKeyboard } from './components/ArabicKeyboard';
 import type { SearchMatch } from './components/SearchModal';
 import type { AyahFeedData } from './components/FeedCard';
 import { QuranService } from './quranService';
@@ -567,6 +568,7 @@ export default function App() {
                 </ul>
               </div>
             )}
+            <ArabicKeyboard onKeyPress={(char) => setGlobalSearch(prev => prev + char)} />
           </div>
 
           {/* Action Buttons */}

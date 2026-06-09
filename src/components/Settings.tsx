@@ -1,6 +1,8 @@
 import React from 'react';
 import type { Settings } from '../utils';
 
+import { SkeuomorphicToggle } from './SkeuomorphicToggle';
+
 interface SettingsProps {
   settings: Settings;
   onChange: (settings: Settings) => void;
@@ -49,61 +51,15 @@ const SettingsComponent: React.FC<SettingsProps> = ({ settings, onChange }) => {
         {/* Global Theming & Layout */}
         <div className="flex flex-col gap-4">
           <h4 className="text-xs text-gray-700 uppercase tracking-widest font-bold">View Mode</h4>
-          
-          <div className="flex flex-col gap-2">
-            <label className="text-sm font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wide">Theme</label>
-            <div className="flex gap-4">
-              <label className="flex items-center gap-2 cursor-pointer text-sm text-gray-600 dark:text-gray-400 hover:text-cyan-600 dark:hover:text-cyan-400 transition-colors">
-                <input
-                  type="radio"
-                  name="themeMode"
-                  value="light"
-                  checked={settings.theme === 'light'}
-                  onChange={() => updateSetting('theme', 'light')}
-                  className="accent-cyan-500 cursor-pointer"
-                />
-                <span>Light</span>
-              </label>
-              <label className="flex items-center gap-2 cursor-pointer text-sm text-gray-600 dark:text-gray-400 hover:text-cyan-600 dark:hover:text-cyan-400 transition-colors">
-                <input
-                  type="radio"
-                  name="themeMode"
-                  value="dark"
-                  checked={settings.theme === 'dark'}
-                  onChange={() => updateSetting('theme', 'dark')}
-                  className="accent-cyan-500 cursor-pointer"
-                />
-                <span>Dark</span>
-              </label>
-            </div>
-          </div>
 
-          <div className="flex flex-col gap-2 mt-2">
-            <label className="text-sm font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wide">Layout</label>
-            <div className="flex gap-4">
-              <label className="flex items-center gap-2 cursor-pointer text-sm text-gray-600 dark:text-gray-400 hover:text-cyan-600 dark:hover:text-cyan-400 transition-colors">
-                <input
-                  type="radio"
-                  name="layoutMode"
-                  value="vertical"
-                  checked={settings.layout === 'vertical'}
-                  onChange={() => updateSetting('layout', 'vertical')}
-                  className="accent-cyan-500 cursor-pointer"
-                />
-                <span>Vertical</span>
-              </label>
-              <label className="flex items-center gap-2 cursor-pointer text-sm text-gray-600 dark:text-gray-400 hover:text-cyan-600 dark:hover:text-cyan-400 transition-colors">
-                <input
-                  type="radio"
-                  name="layoutMode"
-                  value="horizontal"
-                  checked={settings.layout === 'horizontal'}
-                  onChange={() => updateSetting('layout', 'horizontal')}
-                  className="accent-cyan-500 cursor-pointer"
-                />
-                <span>Horizontal</span>
-              </label>
-            </div>
+          <div className="flex flex-col gap-2">
+            <label className="text-sm font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wide mb-1">Layout</label>
+            <SkeuomorphicToggle 
+              leftLabel="Vert" 
+              rightLabel="Horiz" 
+              isRight={settings.layout === 'horizontal'}
+              onToggle={() => updateSetting('layout', settings.layout === 'vertical' ? 'horizontal' : 'vertical')}
+            />
           </div>
         </div>
 
@@ -132,31 +88,13 @@ const SettingsComponent: React.FC<SettingsProps> = ({ settings, onChange }) => {
           </label>
           
           <div className="flex flex-col gap-2 mt-2">
-            <label className="text-sm font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wide">Comparison</label>
-            <div className="flex gap-4">
-              <label className="flex items-center gap-2 cursor-pointer text-sm text-gray-600 dark:text-gray-400 hover:text-cyan-600 dark:hover:text-cyan-400 transition-colors">
-                <input
-                  type="radio"
-                  name="comparisonMode"
-                  value="letter"
-                  checked={settings.comparisonMode === 'letter'}
-                  onChange={() => updateSetting('comparisonMode', 'letter')}
-                  className="accent-cyan-500 cursor-pointer"
-                />
-                <span>Letter</span>
-              </label>
-              <label className="flex items-center gap-2 cursor-pointer text-sm text-gray-600 dark:text-gray-400 hover:text-cyan-600 dark:hover:text-cyan-400 transition-colors">
-                <input
-                  type="radio"
-                  name="comparisonMode"
-                  value="word"
-                  checked={settings.comparisonMode === 'word'}
-                  onChange={() => updateSetting('comparisonMode', 'word')}
-                  className="accent-cyan-500 cursor-pointer"
-                />
-                <span>Word</span>
-              </label>
-            </div>
+            <label className="text-sm font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wide mb-1">Comparison</label>
+            <SkeuomorphicToggle 
+              leftLabel="Word" 
+              rightLabel="Letter" 
+              isRight={settings.comparisonMode === 'letter'}
+              onToggle={() => updateSetting('comparisonMode', settings.comparisonMode === 'word' ? 'letter' : 'word')}
+            />
           </div>
         </div>
 
