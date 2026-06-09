@@ -463,16 +463,16 @@ export default function App() {
       <div className="max-w-7xl mx-auto space-y-8">
         
         {/* Header */}
-        <header className="flex flex-col md:flex-row items-center justify-between border-b border-gray-200 dark:border-gray-800 pb-6 transition-colors duration-300">
-          <div className="text-center md:text-left mb-4 md:mb-0 flex flex-col gap-1">
-            <h1 className="text-4xl md:text-5xl font-black uppercase tracking-[0.2em] text-transparent bg-clip-text bg-gradient-to-r from-cyan-600 to-purple-600 dark:from-cyan-400 dark:to-purple-500 drop-shadow-sm dark:drop-shadow-[0_0_15px_rgba(6,182,212,0.5)]">
+        <header className="flex items-start md:items-center justify-between border-b border-gray-200 dark:border-gray-800 pb-6 transition-colors duration-300">
+          <div className="text-left flex flex-col gap-1">
+            <h1 className="text-3xl md:text-5xl font-black uppercase tracking-[0.1em] md:tracking-[0.2em] text-transparent bg-clip-text bg-gradient-to-r from-cyan-600 to-purple-600 dark:from-cyan-400 dark:to-purple-500 drop-shadow-sm dark:drop-shadow-[0_0_15px_rgba(6,182,212,0.5)]">
               Ayat Compare
             </h1>
-            <p className="text-gray-600 dark:text-gray-300 text-sm font-bold tracking-widest mt-2 uppercase">Advanced Quranic Analysis Matrix</p>
+            <p className="text-gray-600 dark:text-gray-300 text-xs md:text-sm font-bold tracking-widest mt-1 md:mt-2 uppercase">Advanced Quranic Analysis Matrix</p>
           </div>
           <button 
             onClick={() => handleSettingsChange({ ...settings, theme: settings.theme === 'light' ? 'dark' : 'light' })}
-            className="p-3 rounded-full bg-white dark:bg-gray-800 shadow-sm border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors flex items-center justify-center text-xl"
+            className="p-2 md:p-3 rounded-full bg-white dark:bg-gray-800 shadow-sm border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors flex items-center justify-center text-lg md:text-xl ml-4 shrink-0"
             title="Toggle Theme"
           >
             {settings.theme === 'light' ? '🌙' : '☀️'}
@@ -487,7 +487,7 @@ export default function App() {
             <input 
               id="global-search-input"
               type="text" 
-              className="w-full bg-white dark:bg-gray-900 border-2 border-cyan-300 dark:border-cyan-500/50 text-cyan-900 dark:text-cyan-100 p-4 rounded-lg shadow-sm dark:shadow-[inset_0_0_20px_rgba(0,255,255,0.05)] focus:outline-none focus:border-cyan-500 dark:focus:border-cyan-400 focus:shadow-md dark:focus:shadow-[0_0_20px_rgba(0,255,255,0.2)] transition-all placeholder-gray-400 dark:placeholder-gray-600 font-bold text-lg"
+              className="w-full bg-white dark:bg-gray-900 border-2 border-cyan-300 dark:border-cyan-500/50 text-cyan-900 dark:text-cyan-100 py-4 pl-4 pr-12 rounded-lg shadow-sm dark:shadow-[inset_0_0_20px_rgba(0,255,255,0.05)] focus:outline-none focus:border-cyan-500 dark:focus:border-cyan-400 focus:shadow-md dark:focus:shadow-[0_0_20px_rgba(0,255,255,0.2)] transition-all placeholder-gray-400 dark:placeholder-gray-600 font-bold text-lg"
               placeholder="GLOBAL SEARCH: Enter Arabic phrase (e.g. إِنّا أَعتَدنا) or reference (e.g. 2:255)... [Shortcut: /]" 
               value={globalSearch}
               onChange={(e) => setGlobalSearch(e.target.value)}
@@ -502,6 +502,19 @@ export default function App() {
                 }
               }}
             />
+            {globalSearch && (
+              <button
+                onMouseDown={(e) => {
+                  e.preventDefault(); // Prevents input from losing focus
+                  setGlobalSearch('');
+                  setSearchMatches([]);
+                }}
+                className="absolute top-1/2 -translate-y-1/2 right-4 w-8 h-8 flex items-center justify-center text-gray-400 hover:text-red-500 bg-transparent hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full transition-colors z-10"
+                title="Clear Search"
+              >
+                ✕
+              </button>
+            )}
             {isSearchFocused && searchHistory.length > 0 && (
               <div className="absolute top-full left-0 w-full mt-2 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-lg shadow-xl z-20 overflow-hidden">
                 <div className="flex justify-between items-center px-4 py-2 border-b border-gray-100 dark:border-gray-800 bg-gray-50 dark:bg-gray-800/50">
